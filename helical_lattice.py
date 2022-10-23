@@ -241,7 +241,7 @@ def plot_2d_lattice_plotly(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, mark
   fig.update_yaxes(scaleanchor = "x", scaleratio = 1)
 
   #title = "$\\vec{a}=(" + f"{a[0]:.1f}, {a[1]:.1f})Å" + "\\quad\\vec{b}=(" +f"{b[0]:.1f}, {b[1]:.1f})Å" + "\\quad equator=(0,0) \\to" + f"{na}" + "\\vec{a}+" +f"{nb}" + "\\vec{b}$"
-  title = f"a=({a[0]:.1f}, {a[1]:.1f})Å\tb=({b[0]:.1f}, {b[1]:.1f})Å\tequator=(0,0)→{na}*a+{nb}*b"
+  title = f"a=({a[0]:.1f}, {a[1]:.1f})Å\tb=({b[0]:.1f}, {b[1]:.1f})Å<br>equator=(0,0)→{na}*a{'+' if nb>0 else ''}{nb}*b\tcircumference={circumference:.1f}"
   fig.update_layout(title_text=title, title_x=0.5)
   fig.update_layout(height=figure_height, width=1.2*figure_height/((ymax-ymin)/(xmax-xmin)), autosize=False)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
@@ -323,7 +323,7 @@ def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_si
     yaxis =dict(title='rise (Å)', range=[-length/2, length/2]),
   )
   
-  title = f"pitch={rise*abs(360/twist):.1f}Å\ttwist={twist:.1f}° rise={rise:.1f}Å sym=c{csym} diameter={diameter:.1f}Å circumference={circumference:.1f}Å"
+  title = f"pitch={rise*abs(360/twist):.1f}Å\ttwist={twist:.1f}° rise={rise:.1f}Å sym=c{csym}<br>diameter={diameter:.1f}Å circumference={circumference:.1f}Å"
   fig.update_layout(title_text=title, title_x=0.5)
   fig.update_layout(height=figure_height, width=1.2*figure_height*circumference/length, autosize=False)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
@@ -394,7 +394,7 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   equator = go.Scatter3d(x=x, y=y, z=z, mode ='lines', line = dict(color='grey', width=marker_size/2, dash='dash'), opacity=1, showlegend=False)
   fig.add_trace(equator)
 
-  title = f"pitch={rise*abs(360/twist):.1f}Å\ttwist={twist:.1f}° rise={rise:.1f}Å sym=c{csym} diameter={diameter:.1f}Å circumference={np.pi*diameter:.1f}Å"
+  title = f"pitch={rise*abs(360/twist):.1f}Å\ttwist={twist:.1f}° rise={rise:.1f}Å sym=c{csym}<br>diameter={diameter:.1f}Å circumference={np.pi*diameter:.1f}Å"
   fig.update_layout(title_text=title, title_x=0.5)
 
   camera = dict(
@@ -467,9 +467,7 @@ def convert_2d_lattice_to_helical_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0)):
       vs_off_equator.sort(key=lambda v: (abs(round(v[1]/epsilon)), abs(v[0])))
       twist, rise = vs_off_equator[0]
       twist *= 360/circumference
-      if csym>1 and abs(twist)>180./csym:
-          if twist<0: twist+=360./csym
-          elif twist>0: twist-=360./csym
+      twist = set_to_periodic_range(twist, min=-360/(2*csym), max=360/(2*csym))
   diameter = circumference/np.pi
   return twist, rise, csym, diameter
 
@@ -513,6 +511,26 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
   va, vb = vb, va # set va to be the longer unit cell vector
 
   ve = np.array([np.pi*diameter, 0])
+  
+  # find alternative unit cell vector pairs that has smallest angular difference to the helical equator
+  area = np.linalg.norm( np.cross(va, vb) )
+  vabs = []
+  for ia in range(-100, 100):
+    vatmp = ia*va
+    for ib in range(-100, 100):
+      vbtmp = ib*vb
+      areatmp = np.linalg.norm( np.cross(vatmp, vbtmp) )
+      if abs(areatmp-area)>err: continue
+      angle_tmp_va = angle(vatmp, ve)
+      angle_tmp_vb = angle(vbtmp, ve)
+      vabs.append( (angle_tmp_va+angle_tmp_vb, angle_tmp_va, vatmp, vbtmp) )
+      vabs.append( (angle_tmp_va+angle_tmp_vb, angle_tmp_vb, vbtmp, vatmp) )
+  vabs.sort(key=lambda x: x[:2])
+  va, vb = vabs[0][2:]
+  if va[0]<0:
+    va *= -1
+    vb *= -1
+
   dist = []
   for ia in range(-100, 100):
     for ib in range(-100, 100):
@@ -525,6 +543,7 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
   if horizontal:
     vb = transform_vector(vb, vref=va)
     va = np.array([np.linalg.norm(va), 0.0])
+
   return va, vb, endpoint
 
 int_types = {'csym':3, 'figure_height':800, 'horizontal':1, 'na':3, 'nb':0, 'share_url':0}
