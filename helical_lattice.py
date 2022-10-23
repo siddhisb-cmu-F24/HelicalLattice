@@ -76,6 +76,7 @@ def main():
         length = st.number_input('Helical length (Å)', value=400., min_value=0.1, step=1.0, format="%.2f", help="length of the helix", key="length")
 
         if direction == "Helical⇒2D":
+            primitive_unitcell = st.checkbox('Use primitive unit cell', value=False, help="Use primitive unit cell", key="primitive_unitcell")
             horizontal = st.checkbox('Set unit cell vector a along x-axis', value=True, help="Set unit cell vector a along x-axis", key="horizontal")
             
         marker_size = st.number_input('Marker size (Å)', value=20., min_value=0.1, step=1.0, format="%.2f", help="size of the markers", key="marker_size")
@@ -111,7 +112,7 @@ def main():
             st.plotly_chart(fig_helix, use_container_width=True)
 
         with col3:
-            a, b, endpoint = convert_helical_lattice_to_2d_lattice(twist=twist, rise=rise, csym=csym, diameter=diameter,  horizontal=horizontal)
+            a, b, endpoint = convert_helical_lattice_to_2d_lattice(twist=twist, rise=rise, csym=csym, diameter=diameter,  primitive_unitcell=primitive_unitcell, horizontal=horizontal)
 
             st.subheader("Helical Lattice: unrolled into a 2D lattice")
             fig_helix_unrolled = plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_size=marker_size, figure_height=figure_height)
@@ -472,8 +473,13 @@ def convert_2d_lattice_to_helical_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0)):
   return twist, rise, csym, diameter
 
 @st.experimental_memo(max_entries=10, show_spinner=False, suppress_st_warning=True)
-def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=100, horizontal=True):
-  def angle(v1, v2):  # angle between two vectors, ignoring vector polarity
+def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=100, primitive_unitcell=False, horizontal=True):
+  def angle180(v1, v2):  # angle between two vectors [0, 180]
+      p = np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
+      p = np.clip(p, -1, 1)
+      ret = np.rad2deg(np.arccos(p))  # 0<=angle<180
+      return ret
+  def angle90(v1, v2):  # angle between two vectors, ignoring vector polarity [0, 90]
       p = np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
       p = np.clip(abs(p), 0, 1)
       ret = np.rad2deg(np.arccos(p))  # 0<=angle<90
@@ -505,31 +511,34 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
   err = 1.0 # max angle between 2 vectors to consider non-parallel
   va = v[1]
   for i in range(1, len(v)):
-    if angle(va, v[i])> err:
+    if angle90(va, v[i])> err:
       vb = v[i]
       break
   va, vb = vb, va # set va to be the longer unit cell vector
 
   ve = np.array([np.pi*diameter, 0])
   
-  # find alternative unit cell vector pairs that has smallest angular difference to the helical equator
-  area = np.linalg.norm( np.cross(va, vb) )
-  vabs = []
-  for ia in range(-100, 100):
-    vatmp = ia*va
-    for ib in range(-100, 100):
-      vbtmp = ib*vb
-      areatmp = np.linalg.norm( np.cross(vatmp, vbtmp) )
-      if abs(areatmp-area)>err: continue
-      angle_tmp_va = angle(vatmp, ve)
-      angle_tmp_vb = angle(vbtmp, ve)
-      vabs.append( (angle_tmp_va+angle_tmp_vb, angle_tmp_va, vatmp, vbtmp) )
-      vabs.append( (angle_tmp_va+angle_tmp_vb, angle_tmp_vb, vbtmp, vatmp) )
-  vabs.sort(key=lambda x: x[:2])
-  va, vb = vabs[0][2:]
-  if va[0]<0:
-    va *= -1
-    vb *= -1
+  if not primitive_unitcell:
+    # find alternative unit cell vector pairs that has smallest angular difference to the helical equator
+    vabs = []
+    for ia in range(-10, 10):
+      for ib in range(-10, 10):
+        vabs.append(ia*va+ib*vb)
+    vabs_good = []
+    area = np.linalg.norm( np.cross(va, vb) )
+    for vai, vatmp in enumerate(vabs):
+      for vbi in range(vai+1, len(vabs)):
+        vbtmp = vabs[vbi]
+        areatmp = np.linalg.norm( np.cross(vatmp, vbtmp) )
+        if abs(areatmp-area)>err: continue
+        angle_tmp_va = angle180(vatmp, ve)
+        angle_tmp_vb = angle180(vbtmp, ve)
+        vabs_good.append( (angle_tmp_va, np.linalg.norm(vatmp)+np.linalg.norm(vbtmp), angle_tmp_vb, vatmp, vbtmp) )
+    vabs_good.sort(key=lambda x: x[:3])
+    va, vb = vabs_good[0][3:]
+    if va[0]<0:
+        va *= -1
+        vb *= -1
 
   dist = []
   for ia in range(-100, 100):
@@ -546,7 +555,7 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
 
   return va, vb, endpoint
 
-int_types = {'csym':3, 'figure_height':800, 'horizontal':1, 'na':3, 'nb':0, 'share_url':0}
+int_types = {'csym':3, 'figure_height':800, 'horizontal':1, 'na':3, 'nb':0, 'primitive_unitcell':0, 'share_url':0}
 float_types = {'ax':50.0, 'ay':0.0, 'bx':30.0, 'by':20.0, 'diameter':200.0, 'length':400.0, 'marker_size':20, 'rise':20.0, 'twist':30.0}
 default_values = int_types | float_types | {'direction':'2D⇒Helical', }
 def set_initial_session_state():
