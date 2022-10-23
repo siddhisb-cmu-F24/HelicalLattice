@@ -241,7 +241,7 @@ def plot_2d_lattice_plotly(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, mark
   fig.update_yaxes(scaleanchor = "x", scaleratio = 1)
 
   #title = "$\\vec{a}=(" + f"{a[0]:.1f}, {a[1]:.1f})Å" + "\\quad\\vec{b}=(" +f"{b[0]:.1f}, {b[1]:.1f})Å" + "\\quad equator=(0,0) \\to" + f"{na}" + "\\vec{a}+" +f"{nb}" + "\\vec{b}$"
-  title = f"a=({a[0]:.1f}, {a[1]:.1f})Å\tb=({b[0]:.1f}, {b[1]:.1f})Å<br>equator=(0,0)→{na}*a{'+' if nb>0 else ''}{nb}*b\tcircumference={circumference:.1f}"
+  title = f"a=({a[0]:.1f}, {a[1]:.1f})Å\tb=({b[0]:.1f}, {b[1]:.1f})Å<br>equator=(0,0)→{na}*a{'+' if nb>=0 else ''}{nb}*b\tcircumference={circumference:.1f}"
   fig.update_layout(title_text=title, title_x=0.5)
   fig.update_layout(height=figure_height, width=1.2*figure_height/((ymax-ymin)/(xmax-xmin)), autosize=False)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
