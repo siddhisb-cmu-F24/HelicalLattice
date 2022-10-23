@@ -93,7 +93,7 @@ def main():
 
         with col2:
             st.subheader("2D Lattice: from which a block of area is selected to be rolled into a helix")
-            fig_2d = plot_2d_lattice_plotly(a, b, endpoint=(na, nb), length=length, marker_size=marker_size, figure_height=figure_height)
+            fig_2d = plot_2d_lattice(a, b, endpoint=(na, nb), length=length, marker_size=marker_size, figure_height=figure_height)
             st.plotly_chart(fig_2d, use_container_width=True)
 
         with col3:
@@ -120,7 +120,7 @@ def main():
 
         with col4:
             st.subheader("2D Lattice: from which the helix was built")
-            fig_2d = plot_2d_lattice_plotly(a, b, endpoint, length=length, marker_size=marker_size, figure_height=figure_height)
+            fig_2d = plot_2d_lattice(a, b, endpoint, length=length, marker_size=marker_size, figure_height=figure_height)
             st.plotly_chart(fig_2d, use_container_width=True)
 
     if share_url:
@@ -137,7 +137,7 @@ def main():
     st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 @st.experimental_memo(persist='disk', max_entries=1, show_spinner=False, suppress_st_warning=True)
-def plot_2d_lattice_plotly(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, marker_size=10, figure_height=500):
+def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, marker_size=10, figure_height=500):
   a = np.array(a)
   b = np.array(b)
   na, nb = endpoint
@@ -154,8 +154,8 @@ def plot_2d_lattice_plotly(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, mark
   ymin = y0-(y1-y0)*0.1
   ymax = y1+(y1-y0)*0.1
 
-  ia = np.arange(-100, 100)
-  ib = np.arange(-100, 100)
+  ia = np.arange(-200, 200)
+  ib = np.arange(-200, 200)
   x = []
   y = []
   for j in ib:
@@ -175,6 +175,8 @@ def plot_2d_lattice_plotly(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, mark
   y = [*y, 0]
   rectangle = go.Scatter(x=x, y=y, fill="toself", mode='lines', line = dict(color='green', width=marker_size/5, dash='dash'))
   fig.add_trace(rectangle)
+  
+  fig.data = (fig.data[1], fig.data[0])
 
   arrow_start = [0, 0]
   arrow_end = na*a
