@@ -496,7 +496,7 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
     v2 = np.dot(m, v.T)
     return v2
   
-  imax = 5*360/abs(twist)
+  imax = int(5*360/abs(twist))
   n = np.tile(np.arange(-imax, imax), reps=(2,1)).T
   v = np.array([twist, rise], dtype=float) * n
   if csym>1:
