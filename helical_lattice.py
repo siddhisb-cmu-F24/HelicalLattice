@@ -53,7 +53,6 @@ def main():
         set_session_state_from_query_params()
     
     col1 = st.sidebar
-    col2, col3, col4 = st.columns((1, 1, 1), gap="small")
 
     with col1:
         with st.expander(label="README", expanded=False):
@@ -68,10 +67,10 @@ def main():
             na = st.number_input('# units along unit cell vector a', value=3, step=1, format="%d", help="# units along unit cell vector a", key="na")
             nb = st.number_input('# units along unit cell vector b', value=0, step=1, format="%d", help="# units along unit cell vector b", key="nb")
         else:
-            twist = st.number_input('Twist (°)', value=30.0, min_value=-180., max_value=180., step=1.0, format="%.2f", help="twist", key="twist")
-            rise = st.number_input('Rise (Å)', value=20., min_value=0.001, step=1.0, format="%.2f", help="rise", key="rise")
-            csym = st.number_input('Axial symmetry', value=3, min_value=1, step=1, format="%d", help="csym", key="csym")
-            diameter = st.number_input('Helical diameter (Å)', value=100.0, min_value=0.1, step=1.0, format="%.2f", help="diameter of the helix", key="diameter")
+            twist = st.number_input('Twist (°)', value=-81.1, min_value=-180., max_value=180., step=1.0, format="%.2f", help="twist", key="twist")
+            rise = st.number_input('Rise (Å)', value=19.4, min_value=0.001, step=1.0, format="%.2f", help="rise", key="rise")
+            csym = st.number_input('Axial symmetry', value=1, min_value=1, step=1, format="%d", help="csym", key="csym")
+            diameter = st.number_input('Helical diameter (Å)', value=290.0, min_value=0.1, step=1.0, format="%.2f", help="diameter of the helix", key="diameter")
 
         length = st.number_input('Helical length (Å)', value=400., min_value=0.1, step=1.0, format="%.2f", help="length of the helix", key="length")
 
@@ -80,7 +79,7 @@ def main():
             horizontal = st.checkbox('Set unit cell vector a along x-axis', value=True, help="Set unit cell vector a along x-axis", key="horizontal")
             
         lattice_size_factor = st.number_input('2D lattice size factor', value=1.25, min_value=1.0, step=0.1, format="%.2f", help="Draw 2D lattice larger than the helix block by this factor", key="lattice_size_factor")
-        marker_size = st.number_input('Marker size (Å)', value=20., min_value=0.1, step=1.0, format="%.2f", help="size of the markers", key="marker_size")
+        marker_size = st.number_input('Marker size (Å)', value=10., min_value=0.1, step=1.0, format="%.2f", help="size of the markers", key="marker_size")
         figure_height = st.number_input('Plot height (pixels)', value=800, min_value=1, step=10, format="%d", help="height of plots", key="figure_height")
 
         share_url = st.checkbox('Show sharable URL', value=False, help="Include relevant parameters in the browser URL to allow you to share the URL and reproduce the plots", key="share_url")
@@ -88,6 +87,8 @@ def main():
         st.markdown("*Developed by the [Jiang Lab@Purdue University](https://jiang.bio.purdue.edu). Report problems to Wen Jiang (jiang12 at purdue.edu)*")
 
     if direction == "2D⇒Helical":
+        col2, col3, col4 = st.columns((1, 0.8, 0.6), gap="small")
+  
         a = (ax, ay)
         b = (bx, by)
         twist2, rise2, csym2, diameter2 = convert_2d_lattice_to_helical_lattice(a=a, b=b, endpoint=(na, nb))
@@ -103,10 +104,12 @@ def main():
             st.plotly_chart(fig_helix_unrolled, use_container_width=True)
 
         with col4:
-            st.subheader("Helical Lattice: rolled up from the selected block of the starting 2D lattice ")
+            st.subheader("Helical Lattice: rolled up from the starting 2D lattice ")
             fig_helix = plot_helical_lattice(diameter2, length, twist2, rise2, csym2, marker_size=marker_size*0.6, figure_height=figure_height)
             st.plotly_chart(fig_helix, use_container_width=True)
     else:
+        col2, col3, col4 = st.columns((0.6, 0.8, 1), gap="small")
+    
         with col2:
             st.subheader("Helical Lattice")
             fig_helix = plot_helical_lattice(diameter, length, twist, rise, csym, marker_size=marker_size*0.6, figure_height=figure_height)
@@ -240,15 +243,15 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_siz
   fig.update_traces(marker_size=marker_size, showlegend=False)
 
   fig.update_layout(
-    xaxis =dict(title='X (Å)', range=[xmin, xmax]),
-    yaxis =dict(title='Y (Å)', range=[ymin, ymax])
+    xaxis =dict(title='X (Å)', range=[xmin, xmax], constrain='domain'),
+    yaxis =dict(title='Y (Å)', range=[ymin, ymax], constrain='domain')
   )
   fig.update_yaxes(scaleanchor = "x", scaleratio = 1)
 
   #title = "$\\vec{a}=(" + f"{a[0]:.1f}, {a[1]:.1f})Å" + "\\quad\\vec{b}=(" +f"{b[0]:.1f}, {b[1]:.1f})Å" + "\\quad equator=(0,0) \\to" + f"{na}" + "\\vec{a}+" +f"{nb}" + "\\vec{b}$"
   title = f"a=({a[0]:.2f}, {a[1]:.2f})Å\tb=({b[0]:.2f}, {b[1]:.2f})Å<br>equator=(0,0)→{na}*a{'+' if nb>=0 else ''}{nb}*b\tcircumference={circumference:.2f}"
   fig.update_layout(title_text=title, title_x=0.5)
-  fig.update_layout(height=figure_height, width=1.2*figure_height/((ymax-ymin)/(xmax-xmin)), autosize=False)
+  fig.update_layout(height=figure_height)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
 
   return fig
@@ -324,13 +327,13 @@ def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_si
     scaleratio = 360/circumference
   )
   fig.update_layout(
-    xaxis =dict(title='twist (°)', range=[0,360], tickvals=np.linspace(0,360,13)),
-    yaxis =dict(title='rise (Å)', range=[-length/2, length/2]),
+    xaxis =dict(title='twist (°)', range=[0,360], tickvals=np.linspace(0,360,13), constrain='domain'),
+    yaxis =dict(title='rise (Å)', range=[-length/2, length/2], constrain='domain'),
   )
   
   title = f"pitch={rise*abs(360/twist):.2f}Å\ttwist={twist:.2f}° rise={rise:.2f}Å sym=c{csym}<br>diameter={diameter:.2f}Å circumference={circumference:.2f}Å"
   fig.update_layout(title_text=title, title_x=0.5)
-  fig.update_layout(height=figure_height, width=1.2*figure_height*circumference/length, autosize=False)
+  fig.update_layout(height=figure_height)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
 
   return fig
@@ -410,7 +413,7 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   fig.update_layout(scene_camera=camera)
 
   fig.update_scenes(zaxis=dict(range=[-length/2,length/2]), xaxis_visible=False, yaxis_visible=False, zaxis_visible=False, camera_projection_type='orthographic', aspectmode='data')
-  fig.update_layout(height=figure_height, autosize=True)
+  fig.update_layout(height=figure_height)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)')
 
   return fig
@@ -478,11 +481,6 @@ def convert_2d_lattice_to_helical_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0)):
 
 @st.experimental_memo(max_entries=10, show_spinner=False, suppress_st_warning=True)
 def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=100, primitive_unitcell=False, horizontal=True):
-  def angle180(v1, v2):  # angle between two vectors [0, 180]
-      p = np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
-      p = np.clip(p, -1, 1)
-      ret = np.rad2deg(np.arccos(p))  # 0<=angle<180
-      return ret
   def angle90(v1, v2):  # angle between two vectors, ignoring vector polarity [0, 90]
       p = np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
       p = np.clip(abs(p), 0, 1)
@@ -549,6 +547,9 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
     if len(dist):
       dist.sort(key=lambda x: x[:3])
       na, nb, va, vb = dist[0][3:]
+      if np.linalg.norm(vb)>np.linalg.norm(va):
+        va, vb = vb, va
+        na, nb = nb, na
       endpoint = (na, nb)
 
   if va[0]<0:
