@@ -60,19 +60,19 @@ def main():
 
         direction = st.radio(label="Mode:", options=["2D⇒Helical", "Helical⇒2D"], index=0, label_visibility="collapsed", horizontal=True, help="Choose a mode", key="direction")
         if direction == "2D⇒Helical":
-            ax = st.number_input('Unit cell vector a.x (Å)', value=50., step=1.0, format="%.2f", help="x coordinate of the unit cell a vector", key="ax")
+            ax = st.number_input('Unit cell vector a.x (Å)', value=34.65, step=1.0, format="%.2f", help="x coordinate of the unit cell a vector", key="ax")
             ay = st.number_input('Unit cell vector a.y (Å)', value=0., step=1.0, format="%.2f", help="y coordinate of the unit cell a vector", key="ay")
-            bx = st.number_input('Unit cell vector b.x (Å)', value=30.0, step=1.0, format="%.2f", help="x coordinate of the unit cell b vector", key="bx")
-            by = st.number_input('Unit cell vector b.y (Å)', value=20.0, step=1.0, format="%.2f", help="y coordinate of the unit cell b vector", key="by")
-            na = st.number_input('# units along unit cell vector a', value=3, step=1, format="%d", help="# units along unit cell vector a", key="na")
-            nb = st.number_input('# units along unit cell vector b', value=0, step=1, format="%d", help="# units along unit cell vector b", key="nb")
+            bx = st.number_input('Unit cell vector b.x (Å)', value=10.63, step=1.0, format="%.2f", help="x coordinate of the unit cell b vector", key="bx")
+            by = st.number_input('Unit cell vector b.y (Å)', value=-23.01, step=1.0, format="%.2f", help="y coordinate of the unit cell b vector", key="by")
+            na = st.number_input('# units along unit cell vector a', value=16, step=1, format="%d", help="# units along unit cell vector a", key="na")
+            nb = st.number_input('# units along unit cell vector b', value=1, step=1, format="%d", help="# units along unit cell vector b", key="nb")
         else:
             twist = st.number_input('Twist (°)', value=-81.1, min_value=-180., max_value=180., step=1.0, format="%.2f", help="twist", key="twist")
             rise = st.number_input('Rise (Å)', value=19.4, min_value=0.001, step=1.0, format="%.2f", help="rise", key="rise")
             csym = st.number_input('Axial symmetry', value=1, min_value=1, step=1, format="%d", help="csym", key="csym")
             diameter = st.number_input('Helical diameter (Å)', value=290.0, min_value=0.1, step=1.0, format="%.2f", help="diameter of the helix", key="diameter")
 
-        length = st.number_input('Helical length (Å)', value=400., min_value=0.1, step=1.0, format="%.2f", help="length of the helix", key="length")
+        length = st.number_input('Helical length (Å)', value=1000., min_value=0.1, step=1.0, format="%.2f", help="length of the helix", key="length")
 
         if direction == "Helical⇒2D":
             primitive_unitcell = st.checkbox('Use primitive unit cell', value=False, help="Use primitive unit cell", key="primitive_unitcell")
@@ -564,8 +564,8 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
 
   return va, vb, endpoint
 
-int_types = {'csym':3, 'figure_height':800, 'horizontal':1, 'na':3, 'nb':0, 'primitive_unitcell':0, 'share_url':0}
-float_types = {'ax':50.0, 'ay':0.0, 'bx':30.0, 'by':20.0, 'diameter':200.0, 'lattice_size_factor':1.25, 'length':400.0, 'marker_size':20, 'rise':20.0, 'twist':30.0}
+int_types = {'csym':1, 'figure_height':800, 'horizontal':1, 'na':16, 'nb':1, 'primitive_unitcell':0, 'share_url':0}
+float_types = {'ax':34.65, 'ay':0.0, 'bx':10.63, 'by':-23.01, 'diameter':290.0, 'lattice_size_factor':1.25, 'length':1000.0, 'marker_size':10, 'rise':19.4, 'twist':-81.1}
 default_values = int_types | float_types | {'direction':'2D⇒Helical', }
 def set_initial_session_state():
     for attr in sorted(default_values.keys()):
@@ -581,6 +581,10 @@ def set_query_params_from_session_state():
     attrs = sorted(st.session_state.keys())
     for attr in attrs:
         v = st.session_state[attr]
+        if st.session_state.direction == '2D⇒Helical':
+          if attr in ['twist', 'rise', 'csym']: continue
+        else:
+          if attr in ['ax', 'ay', 'bx', 'by', 'na', 'nb']: continue
         if attr in default_values and v==default_values[attr]: continue
         if attr in int_types or isinstance(v, bool):
             d[attr] = int(v)
