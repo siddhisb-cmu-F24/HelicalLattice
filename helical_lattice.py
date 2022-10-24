@@ -521,6 +521,9 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
       break
 
   ve = np.array([np.pi*diameter, 0])
+  m = np.vstack((va, vb)).T
+  na, nb = np.linalg.solve(m, ve)
+  endpoint = (round(na), round(nb))
   
   if not primitive_unitcell:
     # find alternative unit cell vector pairs that has smallest angular difference to the helical equator
@@ -547,10 +550,6 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
       dist.sort(key=lambda x: x[:3])
       na, nb, va, vb = dist[0][3:]
       endpoint = (na, nb)
-  else:
-    m = np.vstack((va, vb)).T
-    na, nb = np.linalg.solve(m, ve)
-    endpoint = (round(na), round(nb))
 
   if va[0]<0:
     va *= -1
