@@ -79,6 +79,7 @@ def main():
             primitive_unitcell = st.checkbox('Use primitive unit cell', value=False, help="Use primitive unit cell", key="primitive_unitcell")
             horizontal = st.checkbox('Set unit cell vector a along x-axis', value=True, help="Set unit cell vector a along x-axis", key="horizontal")
             
+        lattice_size_factor = st.number_input('2D lattice size factor', value=1.25, min_value=1.0, step=0.1, format="%.2f", help="Draw 2D lattice larger than the helix block by this factor", key="lattice_size_factor")
         marker_size = st.number_input('Marker size (Å)', value=20., min_value=0.1, step=1.0, format="%.2f", help="size of the markers", key="marker_size")
         figure_height = st.number_input('Plot height (pixels)', value=800, min_value=1, step=10, format="%d", help="height of plots", key="figure_height")
 
@@ -93,7 +94,7 @@ def main():
 
         with col2:
             st.subheader("2D Lattice: from which a block of area is selected to be rolled into a helix")
-            fig_2d = plot_2d_lattice(a, b, endpoint=(na, nb), length=length, marker_size=marker_size, figure_height=figure_height)
+            fig_2d = plot_2d_lattice(a, b, endpoint=(na, nb), length=length, lattice_size_factor=lattice_size_factor, marker_size=marker_size, figure_height=figure_height)
             st.plotly_chart(fig_2d, use_container_width=True)
 
         with col3:
@@ -120,7 +121,7 @@ def main():
 
         with col4:
             st.subheader("2D Lattice: from which the helix was built")
-            fig_2d = plot_2d_lattice(a, b, endpoint, length=length, marker_size=marker_size, figure_height=figure_height)
+            fig_2d = plot_2d_lattice(a, b, endpoint, length=length, lattice_size_factor=lattice_size_factor, marker_size=marker_size, figure_height=figure_height)
             st.plotly_chart(fig_2d, use_container_width=True)
 
     if share_url:
@@ -137,7 +138,7 @@ def main():
     st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 @st.experimental_memo(persist='disk', max_entries=1, show_spinner=False, suppress_st_warning=True)
-def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, marker_size=10, figure_height=500):
+def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_size_factor=1.25, marker_size=10, figure_height=500):
   a = np.array(a)
   b = np.array(b)
   na, nb = endpoint
@@ -149,10 +150,11 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, marker_size
   x, y = zip(*(corner_points+[na*a]))
   x0, x1 = min(x), max(x)
   y0, y1 = min(y), max(y)
-  xmin = x0-(x1-x0)*0.1
-  xmax = x1+(x1-x0)*0.1
-  ymin = y0-(y1-y0)*0.1
-  ymax = y1+(y1-y0)*0.1
+  pad = min(x1-x0, y1-y0)*(lattice_size_factor-1)
+  xmin = x0 - pad
+  xmax = x1 + pad
+  ymin = y0 - pad
+  ymax = y1 + pad
 
   ia = np.arange(-200, 200)
   ib = np.arange(-200, 200)
@@ -244,7 +246,7 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, marker_size
   fig.update_yaxes(scaleanchor = "x", scaleratio = 1)
 
   #title = "$\\vec{a}=(" + f"{a[0]:.1f}, {a[1]:.1f})Å" + "\\quad\\vec{b}=(" +f"{b[0]:.1f}, {b[1]:.1f})Å" + "\\quad equator=(0,0) \\to" + f"{na}" + "\\vec{a}+" +f"{nb}" + "\\vec{b}$"
-  title = f"a=({a[0]:.1f}, {a[1]:.1f})Å\tb=({b[0]:.1f}, {b[1]:.1f})Å<br>equator=(0,0)→{na}*a{'+' if nb>=0 else ''}{nb}*b\tcircumference={circumference:.1f}"
+  title = f"a=({a[0]:.2f}, {a[1]:.2f})Å\tb=({b[0]:.2f}, {b[1]:.2f})Å<br>equator=(0,0)→{na}*a{'+' if nb>=0 else ''}{nb}*b\tcircumference={circumference:.2f}"
   fig.update_layout(title_text=title, title_x=0.5)
   fig.update_layout(height=figure_height, width=1.2*figure_height/((ymax-ymin)/(xmax-xmin)), autosize=False)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
@@ -326,7 +328,7 @@ def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_si
     yaxis =dict(title='rise (Å)', range=[-length/2, length/2]),
   )
   
-  title = f"pitch={rise*abs(360/twist):.1f}Å\ttwist={twist:.1f}° rise={rise:.1f}Å sym=c{csym}<br>diameter={diameter:.1f}Å circumference={circumference:.1f}Å"
+  title = f"pitch={rise*abs(360/twist):.2f}Å\ttwist={twist:.2f}° rise={rise:.2f}Å sym=c{csym}<br>diameter={diameter:.2f}Å circumference={circumference:.2f}Å"
   fig.update_layout(title_text=title, title_x=0.5)
   fig.update_layout(height=figure_height, width=1.2*figure_height*circumference/length, autosize=False)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
@@ -397,7 +399,7 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   equator = go.Scatter3d(x=x, y=y, z=z, mode ='lines', line = dict(color='grey', width=marker_size/2, dash='dash'), opacity=1, showlegend=False)
   fig.add_trace(equator)
 
-  title = f"pitch={rise*abs(360/twist):.1f}Å\ttwist={twist:.1f}° rise={rise:.1f}Å sym=c{csym}<br>diameter={diameter:.1f}Å circumference={np.pi*diameter:.1f}Å"
+  title = f"pitch={rise*abs(360/twist):.2f}Å\ttwist={twist:.2f}° rise={rise:.2f}Å sym=c{csym}<br>diameter={diameter:.2f}Å circumference={np.pi*diameter:.2f}Å"
   fig.update_layout(title_text=title, title_x=0.5)
 
   camera = dict(
@@ -494,7 +496,8 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
     v2 = np.dot(m, v.T)
     return v2
   
-  n = np.tile(np.arange(5*360/abs(twist)), reps=(2,1)).T
+  imax = 5*360/abs(twist)
+  n = np.tile(np.arange(-imax, imax), reps=(2,1)).T
   v = np.array([twist, rise], dtype=float) * n
   if csym>1:
     vs = []
@@ -504,27 +507,26 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
       vs.append(tmp)
     v = np.vstack(vs)
   v[:, 0] = np.fmod(v[:, 0], 360)
-  v[v<0] += 360
+  v[v[:, 0]<0, 0] += 360
   v[:, 0] *= np.pi*diameter/360 # convert x-axis values from angles to distances
   dist = np.linalg.norm(v, axis=1)
   dist_indices = np.argsort(dist)
 
   v = v[dist_indices] # now sorted from short to long distance
   err = 1.0 # max angle between 2 vectors to consider non-parallel
-  va = v[1]
+  vb = v[1]
   for i in range(1, len(v)):
-    if angle90(va, v[i])> err:
-      vb = v[i]
+    if angle90(vb, v[i])> err:
+      va = v[i]
       break
-  va, vb = vb, va # set va to be the longer unit cell vector
 
   ve = np.array([np.pi*diameter, 0])
   
   if not primitive_unitcell:
     # find alternative unit cell vector pairs that has smallest angular difference to the helical equator
     vabs = []
-    for ia in range(-10, 10):
-      for ib in range(-10, 10):
+    for ia in range(-1, 2):
+      for ib in range(-1, 2):
         vabs.append(ia*va+ib*vb)
     vabs_good = []
     area = np.linalg.norm( np.cross(va, vb) )
@@ -533,23 +535,28 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
         vbtmp = vabs[vbi]
         areatmp = np.linalg.norm( np.cross(vatmp, vbtmp) )
         if abs(areatmp-area)>err: continue
-        angle_tmp_va = angle180(vatmp, ve)
-        angle_tmp_vb = angle180(vbtmp, ve)
-        vabs_good.append( (angle_tmp_va, np.linalg.norm(vatmp)+np.linalg.norm(vbtmp), angle_tmp_vb, vatmp, vbtmp) )
-    vabs_good.sort(key=lambda x: x[:3])
-    va, vb = vabs_good[0][3:]
-    if va[0]<0:
-        va *= -1
-        vb *= -1
+        vabs_good.append( (vatmp, vbtmp) )
+    dist = []
+    for vi, (vatmp, vbtmp) in enumerate(vabs_good):
+        m = np.vstack((vatmp, vbtmp)).T
+        na, nb = np.linalg.solve(m, ve)
+        if abs(na-round(na))>1e-3: continue
+        if abs(nb-round(nb))>1e-3: continue
+        dist.append((abs(na)+abs(nb), -round(na), -round(nb), round(na), round(nb), vatmp, vbtmp))
+    if len(dist):
+      dist.sort(key=lambda x: x[:3])
+      na, nb, va, vb = dist[0][3:]
+      endpoint = (na, nb)
+  else:
+    m = np.vstack((va, vb)).T
+    na, nb = np.linalg.solve(m, ve)
+    endpoint = (round(na), round(nb))
 
-  dist = []
-  for ia in range(-100, 100):
-    for ib in range(-100, 100):
-      vtmp = ia*va + ib*vb
-      err = np.linalg.norm(ve-vtmp)
-      dist.append((err, ia, ib))
-  dist.sort()
-  endpoint = dist[0][1:]
+  if va[0]<0:
+    va *= -1
+    vb *= -1
+    na *= -1
+    nb *= -1
 
   if horizontal:
     vb = transform_vector(vb, vref=va)
@@ -558,7 +565,7 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
   return va, vb, endpoint
 
 int_types = {'csym':3, 'figure_height':800, 'horizontal':1, 'na':3, 'nb':0, 'primitive_unitcell':0, 'share_url':0}
-float_types = {'ax':50.0, 'ay':0.0, 'bx':30.0, 'by':20.0, 'diameter':200.0, 'length':400.0, 'marker_size':20, 'rise':20.0, 'twist':30.0}
+float_types = {'ax':50.0, 'ay':0.0, 'bx':30.0, 'by':20.0, 'diameter':200.0, 'lattice_size_factor':1.25, 'length':400.0, 'marker_size':20, 'rise':20.0, 'twist':30.0}
 default_values = int_types | float_types | {'direction':'2D⇒Helical', }
 def set_initial_session_state():
     for attr in sorted(default_values.keys()):
