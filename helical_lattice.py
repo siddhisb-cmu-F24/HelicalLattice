@@ -48,6 +48,8 @@ def main():
 
     st.title(title)
 
+    st.elements.utils._shown_default_value_warning = True
+
     if len(st.session_state)<1:  # only run once at the start of the session
         #set_initial_session_state()
         set_session_state_from_query_params()
@@ -406,9 +408,9 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   fig.update_layout(title_text=title, title_x=0.5)
 
   camera = dict(
-    up=dict(x=0, y=0, z=0),
+    up=dict(x=0, y=0, z=1),
     center=dict(x=0, y=0, z=0),
-    eye=dict(x=0., y=1, z=0)
+    eye=dict(x=1, y=0, z=0)
   )
   fig.update_layout(scene_camera=camera)
 
