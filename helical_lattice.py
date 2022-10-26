@@ -89,7 +89,7 @@ def main():
         st.markdown("*Developed by the [Jiang Lab@Purdue University](https://jiang.bio.purdue.edu). Report problems to Wen Jiang (jiang12 at purdue.edu)*")
 
     if direction == "2D⇒Helical":
-        col2, col3, col4 = st.columns((1, 0.8, 0.6), gap="small")
+        col2, col3, col4 = st.columns((1, 0.8, 0.7), gap="small")
   
         a = (ax, ay)
         b = (bx, by)
@@ -110,7 +110,7 @@ def main():
             fig_helix = plot_helical_lattice(diameter2, length, twist2, rise2, csym2, marker_size=marker_size*0.6, figure_height=figure_height)
             st.plotly_chart(fig_helix, use_container_width=True)
     else:
-        col2, col3, col4 = st.columns((0.6, 0.8, 1), gap="small")
+        col2, col3, col4 = st.columns((0.7, 0.8, 1), gap="small")
     
         with col2:
             st.subheader("Helical Lattice")
@@ -161,8 +161,20 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_siz
   ymin = y0 - pad
   ymax = y1 + pad
 
-  ia = np.arange(-200, 200)
-  ib = np.arange(-200, 200)
+  nas = []
+  nbs = []
+  m = np.vstack((a, b)).T
+  for v in [(xmin, ymin), (xmin, ymax), (xmax, ymin), (xmax, ymax)]:
+    tmp_a, tmp_b = np.linalg.solve(m, v)
+    nas.append(tmp_a)
+    nbs.append(tmp_b)
+  na_min = np.floor(sorted(nas)[0])-2
+  na_max = np.floor(sorted(nas)[-1])+2
+  nb_min = np.floor(sorted(nbs)[0])-2
+  nb_max = np.floor(sorted(nbs)[-1])+2
+
+  ia = np.arange(na_min, na_max)
+  ib = np.arange(nb_min, nb_max)
   x = []
   y = []
   for j in ib:
@@ -171,9 +183,11 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_siz
       if xmin <= v[0] <= xmax and ymin <= v[1] <= ymax:
         x.append(v[0])
         y.append(v[1])
+
   import pandas as pd
   import plotly.express as px
   import plotly.graph_objects as go
+
   df = pd.DataFrame({'x':x, 'y':y})
   fig = px.scatter(df, x='x', y='y')
 
@@ -371,7 +385,7 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   fig = px.scatter_3d(df, x='x', y='y', z='z', labels={'x': 'X (Å)', 'y':'Y (Å)', 'z':'Z (Å)'}, color='csym' if csym>1 else None)
   fig.update_traces(marker_size = marker_size)
 
-  i = np.arange(-n, n+1, 0.1)
+  i = np.arange(-n, n+1, 5./(abs(twist)))
   for si in range(csym):
     x = diameter/2 * np.cos(np.deg2rad(twist)*i+si/csym*2*np.pi)
     y = diameter/2 * np.sin(np.deg2rad(twist)*i+si/csym*2*np.pi)
@@ -414,7 +428,13 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   )
   fig.update_layout(scene_camera=camera)
 
-  fig.update_scenes(zaxis=dict(range=[-length/2,length/2]), xaxis_visible=False, yaxis_visible=False, zaxis_visible=False, camera_projection_type='orthographic', aspectmode='data')
+  fig.update_scenes(
+    xaxis =dict(range=[-diameter/2-marker_size, diameter/2+marker_size]),
+    yaxis =dict(range=[-diameter/2-marker_size, diameter/2+marker_size]),
+    zaxis =dict(range=[-length/2-marker_size, length/2+marker_size])
+  )
+
+  fig.update_scenes(xaxis_visible=False, yaxis_visible=False, zaxis_visible=False, camera_projection_type='orthographic', aspectmode='data')
   fig.update_layout(height=figure_height)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)')
 
