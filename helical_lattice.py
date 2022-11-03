@@ -38,7 +38,6 @@ def import_with_auto_install(packages, scope=locals()):
 required_packages = "streamlit numpy scipy pandas plotly".split()
 import_with_auto_install(required_packages)
 
-from sys import modules
 import streamlit as st
 import numpy as np
 
