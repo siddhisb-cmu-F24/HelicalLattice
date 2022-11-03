@@ -639,5 +639,7 @@ def setup_anonymous_usage_tracking():
         pass
 
 if __name__ == "__main__":
+  import importlib
+  if importlib.util.find_spec("pyodide") is None:
     setup_anonymous_usage_tracking()
-    main()
+  main()

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HelicalLattice</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-CTBKF6J4CG"></script><script>window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-CTBKF6J4CG');</script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable/build/stlite.js"></script>
+    <script>
+        fetch("helical_lattice.py")
+            .then((response) => response.text())
+            .then(
+                (app) => stlite.mount(
+                    {
+                        requirements: ["streamlit", "numpy", "scipy", "pandas", "plotly"],
+                        entrypoint: "app.py",
+                        files: {
+                            "app.py": app
+                        }
+                    },
+                    document.getElementById("root")
+                )
+            );
+    </script>
+  </body>
+</html>
+
