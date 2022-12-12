@@ -80,7 +80,7 @@ def main():
             horizontal = st.checkbox('Set unit cell vector a along x-axis', value=True, help="Set unit cell vector a along x-axis", key="horizontal")
             
         lattice_size_factor = st.number_input('2D lattice size factor', value=1.25, min_value=1.0, step=0.1, format="%.2f", help="Draw 2D lattice larger than the helix block by this factor", key="lattice_size_factor")
-        marker_size = st.number_input('Marker size (Å)', value=10., min_value=0.1, step=1.0, format="%.2f", help="size of the markers", key="marker_size")
+        marker_size = st.number_input('Marker size (Å)', value=5., min_value=0.1, step=1.0, format="%.2f", help="size of the markers", key="marker_size")
         figure_height = st.number_input('Plot height (pixels)', value=800, min_value=1, step=10, format="%d", help="height of plots", key="figure_height")
 
         share_url = st.checkbox('Show sharable URL', value=False, help="Include relevant parameters in the browser URL to allow you to share the URL and reproduce the plots", key="share_url")
@@ -319,7 +319,7 @@ def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_si
     showarrow=True,
     arrowhead=2,  # type [1,8]
     arrowsize=1,  # relative to arrowwidth
-    arrowwidth=4,   # pixel
+    arrowwidth=2,   # pixel
     arrowcolor="red",
     opacity=1.0
   )
