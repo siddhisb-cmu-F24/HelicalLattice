@@ -265,7 +265,7 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_siz
 
   #title = "$\\vec{a}=(" + f"{a[0]:.1f}, {a[1]:.1f})Å" + "\\quad\\vec{b}=(" +f"{b[0]:.1f}, {b[1]:.1f})Å" + "\\quad equator=(0,0) \\to" + f"{na}" + "\\vec{a}+" +f"{nb}" + "\\vec{b}$"
   title = f"a=({a[0]:.2f}, {a[1]:.2f})Å\tb=({b[0]:.2f}, {b[1]:.2f})Å<br>equator=(0,0)→{na}*a{'+' if nb>=0 else ''}{nb}*b\tcircumference={circumference:.2f}"
-  fig.update_layout(title_text=title, title_x=0.5)
+  fig.update_layout(title_text=title, title_x=0.5, title_xanchor="center")
   fig.update_layout(height=figure_height)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
 
@@ -347,7 +347,7 @@ def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_si
   )
   
   title = f"pitch={rise*abs(360/twist):.2f}Å\ttwist={twist:.2f}° rise={rise:.2f}Å sym=c{csym}<br>diameter={diameter:.2f}Å circumference={circumference:.2f}Å"
-  fig.update_layout(title_text=title, title_x=0.5)
+  fig.update_layout(title_text=title, title_x=0.5, title_xanchor="center")
   fig.update_layout(height=figure_height)
   fig.update_layout(paper_bgcolor='rgba(0, 0, 0, 0)', plot_bgcolor='rgba(0, 0, 0, 0)')
 
@@ -418,7 +418,7 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   fig.add_trace(equator)
 
   title = f"pitch={rise*abs(360/twist):.2f}Å\ttwist={twist:.2f}° rise={rise:.2f}Å sym=c{csym}<br>diameter={diameter:.2f}Å circumference={np.pi*diameter:.2f}Å"
-  fig.update_layout(title_text=title, title_x=0.5)
+  fig.update_layout(title_text=title, title_x=0.5, title_xanchor="center")
 
   camera = dict(
     up=dict(x=0, y=0, z=1),
