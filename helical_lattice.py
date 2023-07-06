@@ -141,7 +141,7 @@ def main():
     """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-@st.experimental_memo(persist='disk', max_entries=1, show_spinner=False, suppress_st_warning=True)
+@st.cache_data(persist='disk', max_entries=1, show_spinner=False)
 def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_size_factor=1.25, marker_size=10, figure_height=500):
   a = np.array(a)
   b = np.array(b)
@@ -272,7 +272,7 @@ def plot_2d_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0), length=10, lattice_siz
   return fig
 
 
-@st.experimental_memo(persist='disk', max_entries=1, show_spinner=False, suppress_st_warning=True)
+@st.cache_data(persist='disk', max_entries=1, show_spinner=False)
 def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_size=10, figure_height=800):
   circumference = np.pi*diameter
   if rise>0:
@@ -353,7 +353,7 @@ def plot_helical_lattice_unrolled(diameter, length, twist, rise, csym, marker_si
 
   return fig
 
-@st.experimental_memo(persist='disk', max_entries=1, show_spinner=False, suppress_st_warning=True)
+@st.cache_data(persist='disk', max_entries=1, show_spinner=False)
 def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10, figure_height=500):
   if rise>0:
     n = min(int(length/2/rise)+2, 1000)
@@ -440,7 +440,7 @@ def plot_helical_lattice(diameter, length, twist, rise, csym,  marker_size = 10,
   return fig
 
 
-@st.experimental_memo(max_entries=10, show_spinner=False, suppress_st_warning=True)
+@st.cache_data(max_entries=10, show_spinner=False)
 def convert_2d_lattice_to_helical_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0)):
   def set_to_periodic_range(v, min=-180, max=180):
     from math import fmod
@@ -500,7 +500,7 @@ def convert_2d_lattice_to_helical_lattice(a=(1, 0), b=(0, 1), endpoint=(10, 0)):
   diameter = circumference/np.pi
   return twist, rise, csym, diameter
 
-@st.experimental_memo(max_entries=10, show_spinner=False, suppress_st_warning=True)
+@st.cache_data(max_entries=10, show_spinner=False)
 def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=100, primitive_unitcell=False, horizontal=True):
   def angle90(v1, v2):  # angle between two vectors, ignoring vector polarity [0, 90]
       p = np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
@@ -625,7 +625,7 @@ def set_session_state_from_query_params():
             else:
                 st.session_state[attr] = query_params[attr][0]
 
-@st.experimental_memo(persist='disk', show_spinner=False)
+@st.cache_data(persist='disk', show_spinner=False)
 def setup_anonymous_usage_tracking():
     try:
         import pathlib, stat
