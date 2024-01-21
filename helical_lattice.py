@@ -1,7 +1,7 @@
 """ 
 MIT License
 
-Copyright (c) 2022 Wen Jiang
+Copyright (c) 2022-2024 Wen Jiang
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ def main():
         with st.expander(label="README", expanded=False):
             st.write("**HelicalLattice** is a Web app that helps the user to understand how a helical lattice and its underlying 2D lattice can interconvert. The user can specify any 2D lattice and choose a line segment connecting any pair of lattice points that defines the block of 2D lattice to be rolled up into a helical lattice")
 
-        direction = st.radio(label="Mode:", options=["2D⇒Helical", "Helical⇒2D"], index=0, label_visibility="collapsed", horizontal=True, help="Choose a mode", key="direction")
+        direction = st.radio(label="Mode:", options=["Helical⇒2D", "2D⇒Helical"], index=0, label_visibility="collapsed", horizontal=True, help="Choose a mode", key="direction")
         if direction == "2D⇒Helical":
             ax = st.number_input('Unit cell vector a.x (Å)', value=34.65, step=1.0, format="%.2f", help="x coordinate of the unit cell a vector", key="ax")
             ay = st.number_input('Unit cell vector a.y (Å)', value=0., step=1.0, format="%.2f", help="y coordinate of the unit cell a vector", key="ay")
@@ -131,7 +131,7 @@ def main():
     if share_url:
         set_query_params_from_session_state()
     else:
-        st.experimental_set_query_params()
+        st.query_params.clear()
 
     hide_streamlit_style = """
     <style>
@@ -586,8 +586,8 @@ def convert_helical_lattice_to_2d_lattice(twist=30, rise=20, csym=1, diameter=10
   return va, vb, endpoint
 
 int_types = {'csym':1, 'figure_height':800, 'horizontal':1, 'na':16, 'nb':1, 'primitive_unitcell':0, 'share_url':0}
-float_types = {'ax':34.65, 'ay':0.0, 'bx':10.63, 'by':-23.01, 'diameter':290.0, 'lattice_size_factor':1.25, 'length':1000.0, 'marker_size':10, 'rise':19.4, 'twist':-81.1}
-default_values = int_types | float_types | {'direction':'2D⇒Helical', }
+float_types = {'ax':34.65, 'ay':0.0, 'bx':10.63, 'by':-23.01, 'diameter':290.0, 'lattice_size_factor':1.25, 'length':1000.0, 'marker_size':5.0, 'rise':19.4, 'twist':-81.1}
+default_values = int_types | float_types | {'direction':'Helical⇒2D', }
 def set_initial_session_state():
     for attr in sorted(default_values.keys()):
             if attr in int_types:
@@ -613,17 +613,17 @@ def set_query_params_from_session_state():
             d[attr] = f'{float(v):g}'
         else:
             d[attr] = v
-    st.experimental_set_query_params(**d)
+    st.query_params.update(d)
 
 def set_session_state_from_query_params():
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params
     for attr in sorted(query_params.keys()):
             if attr in int_types:
-                st.session_state[attr] = int(query_params[attr][0])
+                st.session_state[attr] = int(query_params[attr])
             elif attr in float_types:
-                st.session_state[attr] = float(query_params[attr][0])
+                st.session_state[attr] = float(query_params[attr])
             else:
-                st.session_state[attr] = query_params[attr][0]
+                st.session_state[attr] = query_params[attr]
 
 @st.cache_data(persist='disk', show_spinner=False)
 def setup_anonymous_usage_tracking():
